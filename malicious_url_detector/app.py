@@ -74,10 +74,9 @@ class URL_H:
     def preprocess(self):
         self.df = pd.read_csv(self.sample_set_path)
         self.df = self.df.sample(frac=1).reset_index(drop=True)
-        print(self.df.head())
 
     def total_records(self):
-        print(len(self.df))
+        _logger.info('Total Records {}'.format(len(self.df))
    
     def suspicious_indicators(self):
         self.Suspicious_TLD = []
@@ -183,7 +182,6 @@ class URL_H:
         result.append(self.is_bad_tld(self.ext.suffix))
         result.append(self.is_bad_domain('.'.join(self.ext[1:])))
         result.append(str(label))
-        print(result)
         return result
         
     @staticmethod
@@ -210,14 +208,14 @@ class URL_H:
         #pool.join()
         #results = [r.get()[0] for r in result]
         for i in range(len(self.df)):
-            print('Processing {}'.format(i))
+            _logger.info('Processing {}'.format(i))
             features = self.extract_url_features(self.df["URL"].loc[i], self.df["Lable"].loc[i])
             self.featureSet.loc[i] = features
-            print('Processing Done {} -- features {}'.format(i,features))
+        _logger.info('Processing Done {} -- features {}'.format(i,features))
 
-        print('Time taken',datetime.now()-start)
-        print(self.featureSet.head())
-        print(self.featureSet.groupby(self.featureSet['label']).size())
+        _logger.info('Time taken',datetime.now()-start)
+        _logger.info(self.featureSet.head())
+        _logger.info(self.featureSet.groupby(self.featureSet['label']).size())
         X = self.featureSet.drop(['url','label'],axis=1).values
         y = self.featureSet['label'].values
         model = { 
@@ -231,16 +229,16 @@ class URL_H:
             with open('url.pickle','wb') as f:
                 pickle.dump(clf,f)
             score = clf.score(X_test,y_test)
-            print(("%s : %s " %(algo, score)))
+            _logger.info(("%s : %s " %(algo, score)))
             results[algo] = score        
-
+        #Calculate the Algorthim with most accuracy
         winner = max(results, key=results.get)
-        print(winner)
+        _logger.info(winner)
         self.clf = model[winner]
         res = self.clf.predict(X)
         mt = confusion_matrix(y, res)
-        print("False positive rate : %f %%" % ((mt[0][1] / float(sum(mt[0])))*100))
-        print('False negative rate : %f %%' % ( (mt[1][0] / float(sum(mt[1]))*100)))
+        _logger.info("False positive rate : %f %%" % ((mt[0][1] / float(sum(mt[0])))*100))
+        _logger.info('False negative rate : %f %%' % ( (mt[1][0] / float(sum(mt[1]))*100)))
 
     def test(self,url):
         result = pd.DataFrame(columns=('url','no of dots','presence of hyphen','len of url','presence of at',\
@@ -250,7 +248,7 @@ class URL_H:
         results = self.extract_url_features(url, '1')
         result.loc[0] = results
         result = result.drop(['url','label'],axis=1).values
-        print(self.clf.predict(result))
+        _logger.info(self.clf.predict(result))
         return self.clf.predict(result).tolist()
 
 def self_learn():
