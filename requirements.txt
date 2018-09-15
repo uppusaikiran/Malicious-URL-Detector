@@ -11,7 +11,7 @@ coverage==4.5.1
 cycler==0.10.0
 enum34==1.1.6
 eventlet==0.22.1
-Flask==0.12.2
+Flask==0.12.3
 Flask-Login==0.4.1
 Flask-OpenID==1.2.5
 Flask-SQLAlchemy==2.3.2
