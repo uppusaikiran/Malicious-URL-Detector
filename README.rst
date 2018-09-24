@@ -1,19 +1,10 @@
-======================
-malicious-url-detector
-======================
+# Malicious_URL_DETECTOR
 
 
-Add a short description here!
 
+### TODO:
 
-Description
-===========
-
-A LONGER DESCRIPTION OF YOUR PROJECT GOES HERE...
-
-
-Note
-====
-
-This project has been set up using PyScaffold 2.5. For details and usage
-information on PyScaffold see http://pyscaffold.readthedocs.org/.
+* Write Readme
+* Reduce model generation time,make use of caching.
+* Make a way to add features/data on increment basic for continuous build generation.
+* Write UT
