@@ -29,13 +29,14 @@ import pickle
 import argparse
 import logging
 import datetime
+import time
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn.ensemble as ek
 from os.path import splitext
 from datetime import datetime
 from multiprocessing import Process,Pool,Lock
-from sklearn import cross_validation, tree, linear_model
+from sklearn import tree, linear_model,model_selection
 from sklearn.feature_selection import SelectFromModel
 from sklearn.externals import joblib
 from sklearn.naive_bayes import GaussianNB
@@ -49,13 +50,16 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+import warnings
+
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
 
 __author__ = "uppusaikiran"
 __copyright__ = "uppusaikiran"
 __license__ = "MIT"
 
-_logger = logging.getLogger(__name__)
-
+_logger = logging.getLogger('model_builder')
 
 class URL_H:
     
@@ -67,7 +71,7 @@ class URL_H:
                                     columns=(
                                         'url','no of dots','presence of hyphen','len of url','presence of at',\
                                         'presence of double slash','no of subdir','no of subdomain','len of domain','no of queries','is IP',\
-                                        'presence of Suspicious_TLD','presence of suspicious domain','label'
+                                        'presence of Suspicious_TLD','label'
                                         )
                                     )
 
@@ -76,7 +80,7 @@ class URL_H:
         self.df = self.df.sample(frac=1).reset_index(drop=True)
 
     def total_records(self):
-        _logger.info('Total Records {}'.format(len(self.df))
+        _logger.info('Total Records {}'.format(len(self.df)))
    
     def suspicious_indicators(self):
         self.Suspicious_TLD = []
@@ -180,7 +184,7 @@ class URL_H:
         
         #BAD TLD
         result.append(self.is_bad_tld(self.ext.suffix))
-        result.append(self.is_bad_domain('.'.join(self.ext[1:])))
+        #result.append(self.is_bad_domain('.'.join(self.ext[1:])))
         result.append(str(label))
         return result
         
@@ -195,25 +199,25 @@ class URL_H:
             print('Error in calculating features {}'.format(e))
     
     def start_scan(self,i):
-        print('Processing {}'.format(i))
+        print('Processing {}'.format(self.df["URL"].loc[i]))
         features = self.extract_url_features(self.df["URL"].loc[i], self.df["Lable"].loc[i])
         self.featureSet.loc[i] = features
         print('Processing Done {} -- features {}'.format(i,features))
 
     def learn(self):
-        #start = datetime.now()
+        start = time.time()
         #pool = Pool(processes = 4) # number of processes
         #result = [pool.apply_async(self.pp,(i)) for i in range(len(self.df))]
         #pool.close()
         #pool.join()
         #results = [r.get()[0] for r in result]
         for i in range(len(self.df)):
-            _logger.info('Processing {}'.format(i))
+            _logger.info('Processing {}'.format(self.df["URL"].loc[i]))
             features = self.extract_url_features(self.df["URL"].loc[i], self.df["Lable"].loc[i])
             self.featureSet.loc[i] = features
         _logger.info('Processing Done {} -- features {}'.format(i,features))
 
-        _logger.info('Time taken',datetime.now()-start)
+        _logger.info('Time taken',time.time()-start)
         _logger.info(self.featureSet.head())
         _logger.info(self.featureSet.groupby(self.featureSet['label']).size())
         X = self.featureSet.drop(['url','label'],axis=1).values
@@ -221,7 +225,7 @@ class URL_H:
         model = { 
              "RandomForest":ek.RandomForestClassifier(n_estimators=50,n_jobs=20)
         }
-        X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y ,test_size=0.2)
+        X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y ,test_size=0.2)
         results = {}
         for algo in model:
             clf = model[algo]
@@ -230,6 +234,7 @@ class URL_H:
                 pickle.dump(clf,f)
             score = clf.score(X_test,y_test)
             _logger.info(("%s : %s " %(algo, score)))
+            _logger.info("url.pickle model file created")
             results[algo] = score        
         #Calculate the Algorthim with most accuracy
         winner = max(results, key=results.get)
@@ -243,13 +248,13 @@ class URL_H:
     def test(self,url):
         result = pd.DataFrame(columns=('url','no of dots','presence of hyphen','len of url','presence of at',\
 'presence of double slash','no of subdir','no of subdomain','len of domain','no of queries','is IP','presence of Suspicious_TLD',\
-'presence of suspicious domain','label'))
+'label'))
 
         results = self.extract_url_features(url, '1')
         result.loc[0] = results
         result = result.drop(['url','label'],axis=1).values
-        _logger.info(self.clf.predict(result))
-        return self.clf.predict(result).tolist()
+        return result
+
 
 def self_learn():
     url = URL_H()
