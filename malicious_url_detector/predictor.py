@@ -18,10 +18,13 @@ Note: This skeleton file can be safely removed if not needed!
 from __future__ import division, print_function, absolute_import
 
 import argparse
+import os
+import pickle
 import sys
 import logging
+import warnings
 from app import URL_H
-
+warnings.filterwarnings("ignore")
 
 __author__ = "uppusaikiran"
 __copyright__ = "uppusaikiran"
@@ -31,30 +34,11 @@ _logger = logging.getLogger('url-predictor')
 _logger.setLevel(logging.INFO)
 fh = logging.FileHandler('url.log')
 fh.setLevel(logging.INFO)
-# create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
-# create formatter and add it to the handlers
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
 fh.setFormatter(formatter)
-# add the handlers to logger
-_logger.addHandler(ch)
 _logger.addHandler(fh)
 
-def fib(n):
-    """
-    Fibonacci example function
-
-    :param n: integer
-    :return: n-th Fibonacci number
-    """
-    assert n > 0
-    a, b = 1, 1
-    for i in range(n-1):
-        a, b = b, a+b
-    return a
 
 def result(url_passed):
     """
@@ -63,15 +47,20 @@ def result(url_passed):
     :param url_passed: url
     :return: clean/malicious
     """
-    url = URL_H()
     try:
-        os.path.exists(os.path.join(os.path.dirname(os.path.realpath(__file__)),'url.pickle'))
-        pickle_in = open(PICKLE_FILE,'rb')
+        if os.path.exists(os.path.join(os.path.dirname(os.path.realpath(__file__)),'url.pickle')):
+            _logger.info('Pickle file exists')
+        pickle_in = open('url.pickle','rb')
         clf = pickle.load(pickle_in)
+        url = URL_H()
         url.suspicious_indicators()
         result = url.test(url_passed)
+        final = clf.predict(result)
     except Exception as e:
         _logger.warning('MODEL FILE IS NOT GENERATOR.. Will be generated for one time')
+        _logger.error(e)
+        print('Model file is not generated.So Building Model for one time')
+        url = URL_H()
         url.preprocess()
         url.suspicious_indicators()
         url.learn()
@@ -101,7 +90,6 @@ def main(args):
 
 
 def run():
-    #logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     main(sys.argv[1:])
 
 
