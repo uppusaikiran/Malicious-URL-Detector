@@ -63,7 +63,7 @@ tldextract==2.2.0
 tqdm==4.19.8
 uritemplate==3.0.0
 urllib3==1.22
-Werkzeug==0.12.2
+Werkzeug==0.15.3
 whois==0.7
 Whoosh==2.7.4
 WhooshAlchemy==0.3.1
