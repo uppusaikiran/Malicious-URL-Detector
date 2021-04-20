@@ -39,7 +39,7 @@ oauth2client==4.1.2
 pandas==0.21.0
 pefile==2017.11.5
 pluggy==0.6.0
-py==1.5.3
+py==1.10.0
 pyasn1==0.4.2
 pyasn1-modules==0.2.1
 pymongo==3.6.0
