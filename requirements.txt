@@ -34,7 +34,7 @@ MarkupSafe==1.0
 matplotlib==2.1.0
 more-itertools==4.1.0
 nltk==3.4.5
-numpy==1.13.3
+numpy==1.21.0
 oauth2client==4.1.2
 pandas==0.21.0
 pefile==2017.11.5
